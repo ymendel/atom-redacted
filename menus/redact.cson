@@ -1,0 +1,11 @@
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'Redacted'
+      'submenu': [
+        { 'label': 'Redact', 'command': 'redacted:redact' }
+      ]
+    ]
+  }
+]

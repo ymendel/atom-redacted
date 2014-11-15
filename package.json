@@ -1,0 +1,10 @@
+{
+  "name": "redacted",
+  "main": "./lib/redact",
+  "activationEvents": [
+    "redacted:redact"
+  ],
+  "engines": {
+    "atom": "*"
+  }
+}
