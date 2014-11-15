@@ -5,8 +5,12 @@ redact = (editor) ->
 
 redactText = (range, editor) ->
   originalText = editor.getTextInBufferRange(range)
-  redactedText = Array(originalText.length).join("x")
+  redactedText = originalText.replace /([\w'-]+)/g, (match) ->
+    redactWord(match)
   editor.setTextInBufferRange(range, redactedText)
+
+redactWord = (word) ->
+  Array(word.length + 1).join("█")
 
 module.exports =
   activate: ->
