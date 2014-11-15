@@ -6,7 +6,11 @@ redact = (editor) ->
 redactText = (range, editor) ->
   originalText = editor.getTextInBufferRange(range)
   redactedText = originalText.replace /([\w'-]+)/g, (match) ->
-    redactWord(match)
+    if Math.random() < 0.25
+      redactWord(match)
+    else
+      match
+
   editor.setTextInBufferRange(range, redactedText)
 
 redactWord = (word) ->
