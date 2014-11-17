@@ -1,6 +1,12 @@
 {
   "name": "redacted",
+  "version": "0.0.0",
   "main": "./lib/redact",
+  "description": "████ important ████ ██ Atom",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ymendel/atom-redacted"
+  },
   "activationEvents": [
     "redacted:redact"
   ],
