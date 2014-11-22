@@ -19,20 +19,31 @@ class Redactor
     @regex   = /([\w'-]+)/g
     if args.percent == 101
       @regex = /(\S+)/g
+    else if args.percent == 102
+      @full_line = true
+      @regex = /^\s*(.+)\s*$/gm
 
   redact: ->
     @editor.transact =>
       for range in @editor.getSelectedBufferRanges()
-        this.redactText(range)
+        this.redactRange(range)
 
-  redactText: (range) ->
+  redactRange: (range) ->
     originalText = @editor.getTextInBufferRange(range)
     redactedText = originalText.replace @regex, (match) =>
       if Math.random() < @percent
-        this.redactWord(match)
+        this.redactText(match)
       else
         match
     @editor.setTextInBufferRange(range, redactedText)
+
+  redactText: (text) ->
+    if @full_line
+      breakdown = text.match(/^(\s*)(.+)(\s*)$/)[1..]
+      breakdown[1] = this.redactWord(breakdown[1])
+      breakdown.join("")
+    else
+      this.redactWord(text)
 
   redactWord: (word) ->
     Array(word.length + 1).join("█")
