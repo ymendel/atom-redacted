@@ -1,7 +1,8 @@
 '.workspace':
   'alt-cmd-r': 'redacted:redact'
   'alt-cmd-shift-R': 'redacted:percent-toggle'
+  'alt-cmd-ctrl-r':  'redacted:pattern-toggle'
 
-'.redact-percent .mini.editor input':
+'.redact-input .mini.editor input':
   'enter': 'core:confirm'
   'escape': 'core:cancel'

@@ -12,13 +12,21 @@ module.exports =
       view.toggle()
       false
 
+    atom.workspaceView.command 'redacted:pattern-toggle', '.editor', ->
+      view = new RedactPatternView
+      view.toggle()
+      false
+
 class Redactor
   constructor: (args) ->
     @editor  = args.editor
     @percent = (args.percent or 25) / 100
     @regex   = /([\w'-]+)/g
 
-    if args.percent == 101
+    if args.regex
+      @regex   = args.regex
+      @percent = 1
+    else if args.percent == 101
       @regex = /(\S+)/g
     else if args.percent == 102
       @full_line = true
@@ -51,7 +59,7 @@ class Redactor
 
 class RedactInputView extends View
   @content: ->
-    @div class: "#{@contentClass} overlay from-top mini", =>
+    @div class: "redact-input #{@contentClass} overlay from-top mini", =>
       @subview 'miniEditor', new EditorView(mini: true)
       @div class: 'message', outlet: 'message'
 
@@ -123,3 +131,18 @@ class RedactPercentView extends RedactInputView
     percent = parseInt(input)
 
     new Redactor(editor: editor, percent: percent)
+
+class RedactPatternView extends RedactInputView
+  @contentClass: 'redact-pattern'
+
+  initialize: ->
+    @messageText = 'Enter a string'
+
+    super
+
+  redactor: (editor, input) ->
+    return unless editor? and input?
+
+    pattern = new RegExp(input, 'g')
+
+    new Redactor(editor: editor, regex: pattern)

@@ -9,7 +9,8 @@
   },
   "activationEvents": [
     "redacted:redact",
-    "redacted:percent-toggle"
+    "redacted:percent-toggle",
+    "redacted:pattern-toggle"
   ],
   "engines": {
     "atom": "*"
