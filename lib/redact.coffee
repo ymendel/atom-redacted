@@ -34,8 +34,16 @@ class Redactor
 
   redact: ->
     @editor.transact =>
-      for range in @editor.getSelectedBufferRanges()
+      ranges = @editor.getSelectedBufferRanges()
+      selection = null
+      if ranges.length is 1 and ranges[0].isEmpty()
+        selection = @editor.selectAll()[0]
+        ranges    = [selection.getBufferRange()]
+
+      for range in ranges
         this.redactRange(range)
+
+      selection?.clear()
 
   redactRange: (range) ->
     originalText = @editor.getTextInBufferRange(range)
