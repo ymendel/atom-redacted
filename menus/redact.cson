@@ -2,10 +2,13 @@
   {
     'label': 'Packages'
     'submenu': [
-      'label': 'Redacted'
-      'submenu': [
-        { 'label': 'Redact', 'command': 'redacted:redact' }
-      ]
+      {
+        'label': 'Redacted'
+        'submenu': [
+          { 'label': 'Redact', 'command': 'redacted:redact' }
+          { 'label': 'Percent', 'command': 'redacted:percent-toggle' }
+        ]
+      }
     ]
   }
 ]

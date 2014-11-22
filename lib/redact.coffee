@@ -1,9 +1,16 @@
+{$, EditorView, Point, View} = require 'atom'
+
 module.exports =
   activate: ->
     atom.workspaceView.command 'redacted:redact', '.editor', ->
       editor   = atom.workspace.getActiveEditor()
       redactor = new Redactor(editor: editor, percent: 25)
       redactor.redact()
+
+    atom.workspaceView.command 'redacted:percent-toggle', '.editor', ->
+      view = new RedactPercentView
+      view.toggle()
+      false
 
 class Redactor
   constructor: (args) ->
@@ -26,3 +33,64 @@ class Redactor
 
   redactWord: (word) ->
     Array(word.length + 1).join("█")
+
+class RedactPercentView extends View
+  @content: ->
+    @div class: 'redact-percent overlay from-top mini', =>
+      @subview 'miniEditor', new EditorView(mini: true)
+      @div class: 'message', outlet: 'message'
+
+  detaching: false
+
+  initialize: ->
+    @miniEditor.hiddenInput.on 'focusout', => @detach() unless @detaching
+    @on 'core:confirm', => @confirm()
+    @on 'core:cancel', => @detach()
+
+    @miniEditor.getModel().on 'will-insert-text', ({cancel, text}) =>
+      cancel() unless text.match(/[0-9]/)
+
+  toggle: ->
+    if @hasParent()
+      @detach()
+    else
+      @attach()
+
+   detach: ->
+    return unless @hasParent()
+
+    @detaching = true
+    miniEditorFocused = @miniEditor.isFocused
+    @miniEditor.setText('')
+
+    super
+
+    @restoreFocus() if miniEditorFocused
+    @detaching = false
+
+  confirm: ->
+    percent = @miniEditor.getText()
+    editor  = atom.workspace.getActiveEditor()
+
+    @detach()
+
+    return unless editor? and percent.length
+
+    redactor = new Redactor(editor: editor, percent: percent)
+    redactor.redact()
+
+  storeFocusedElement: ->
+    @previouslyFocusedElement = $(':focus')
+
+  restoreFocus: ->
+    if @previouslyFocusedElement?.isOnDom()
+      @previouslyFocusedElement.focus()
+    else
+      atom.workspaceView.focus()
+
+  attach: ->
+    if editor = atom.workspace.getActiveEditor()
+      @storeFocusedElement()
+      atom.workspaceView.append(this)
+      @message.text("Enter a percentage")
+      @miniEditor.focus()
