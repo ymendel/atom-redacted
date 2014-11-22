@@ -16,6 +16,9 @@ class Redactor
   constructor: (args) ->
     @editor  = args.editor
     @percent = (args.percent or 25) / 100
+    @regex   = /([\w'-]+)/g
+    if args.percent == 101
+      @regex = /(\S+)/g
 
   redact: ->
     @editor.transact =>
@@ -24,7 +27,7 @@ class Redactor
 
   redactText: (range) ->
     originalText = @editor.getTextInBufferRange(range)
-    redactedText = originalText.replace /([\w'-]+)/g, (match) =>
+    redactedText = originalText.replace @regex, (match) =>
       if Math.random() < @percent
         this.redactWord(match)
       else
@@ -75,6 +78,7 @@ class RedactPercentView extends View
     @detach()
 
     return unless editor? and percent.length
+    percent = parseInt(percent)
 
     redactor = new Redactor(editor: editor, percent: percent)
     redactor.redact()
