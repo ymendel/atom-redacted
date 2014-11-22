@@ -2,12 +2,13 @@ module.exports =
   activate: ->
     atom.workspaceView.command 'redacted:redact', '.editor', ->
       editor   = atom.workspace.getActiveEditor()
-      redactor = new Redactor(editor: editor)
+      redactor = new Redactor(editor: editor, percent: 25)
       redactor.redact()
 
 class Redactor
   constructor: (args) ->
-    @editor = args.editor
+    @editor  = args.editor
+    @percent = (args.percent or 25) / 100
 
   redact: ->
     @editor.transact =>
@@ -17,7 +18,7 @@ class Redactor
   redactText: (range) ->
     originalText = @editor.getTextInBufferRange(range)
     redactedText = originalText.replace /([\w'-]+)/g, (match) =>
-      if Math.random() < 0.25
+      if Math.random() < @percent
         this.redactWord(match)
       else
         match
