@@ -48,9 +48,9 @@ class Redactor
   redactWord: (word) ->
     Array(word.length + 1).join("█")
 
-class RedactPercentView extends View
+class RedactInputView extends View
   @content: ->
-    @div class: 'redact-percent overlay from-top mini', =>
+    @div class: "#{@contentClass} overlay from-top mini", =>
       @subview 'miniEditor', new EditorView(mini: true)
       @div class: 'message', outlet: 'message'
 
@@ -60,9 +60,6 @@ class RedactPercentView extends View
     @miniEditor.hiddenInput.on 'focusout', => @detach() unless @detaching
     @on 'core:confirm', => @confirm()
     @on 'core:cancel', => @detach()
-
-    @miniEditor.getModel().on 'will-insert-text', ({cancel, text}) =>
-      cancel() unless text.match(/[0-9]/)
 
   toggle: ->
     if @hasParent()
@@ -83,16 +80,14 @@ class RedactPercentView extends View
     @detaching = false
 
   confirm: ->
-    percent = @miniEditor.getText()
-    editor  = atom.workspace.getActiveEditor()
+    input  = @miniEditor.getText()
+    editor = atom.workspace.getActiveEditor()
 
     @detach()
 
-    return unless editor? and percent.length
-    percent = parseInt(percent)
+    return unless editor? and input.length
 
-    redactor = new Redactor(editor: editor, percent: percent)
-    redactor.redact()
+    this.redactor(editor, input).redact()
 
   storeFocusedElement: ->
     @previouslyFocusedElement = $(':focus')
@@ -107,5 +102,23 @@ class RedactPercentView extends View
     if editor = atom.workspace.getActiveEditor()
       @storeFocusedElement()
       atom.workspaceView.append(this)
-      @message.text("Enter a percentage")
+      @message.text(@messageText)
       @miniEditor.focus()
+
+class RedactPercentView extends RedactInputView
+  @contentClass: 'redact-percent'
+
+  initialize: ->
+    @messageText = 'Enter a percentage'
+
+    super
+
+    @miniEditor.getModel().on 'will-insert-text', ({cancel, text}) =>
+      cancel() unless text.match(/[0-9]/)
+
+  redactor: (editor, input) ->
+    return unless editor? and input?
+
+    percent = parseInt(input)
+
+    new Redactor(editor: editor, percent: percent)
