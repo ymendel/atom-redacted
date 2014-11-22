@@ -17,6 +17,7 @@ class Redactor
     @editor  = args.editor
     @percent = (args.percent or 25) / 100
     @regex   = /([\w'-]+)/g
+
     if args.percent == 101
       @regex = /(\S+)/g
     else if args.percent == 102
