@@ -1,4 +1,4 @@
-{$, EditorView, Point, View} = require 'atom'
+{$, EditorView, View} = require 'atom'
 
 module.exports =
   activate: ->
