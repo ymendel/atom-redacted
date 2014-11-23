@@ -3,8 +3,7 @@
 module.exports =
   activate: ->
     atom.workspaceView.command 'redacted:redact', '.editor', ->
-      editor   = atom.workspace.getActiveEditor()
-      redactor = new PercentRedactor(editor: editor, percent: 25)
+      redactor = new PercentRedactor(25)
       redactor.redact()
 
     atom.workspaceView.command 'redacted:percent-toggle', '.editor', ->
@@ -18,8 +17,8 @@ module.exports =
       false
 
 class Redactor
-  constructor: (options) ->
-    @editor  = options.editor
+  constructor: ->
+    @editor = atom.workspace.getActiveEditor()
 
   redact: ->
     @editor.transact =>
@@ -55,14 +54,14 @@ class Redactor
     Array(word.length + 1).join("█")
 
 class PercentRedactor extends Redactor
-  constructor: (options) ->
+  constructor: (percent) ->
     super
-    @percent = (options.percent or 25) / 100
+    @percent = (percent or 25) / 100
     @regex   = /([\w'-]+)/g
 
-    if options.percent == 101
+    if percent == 101
       @regex = /(\S+)/g
-    else if options.percent == 102
+    else if percent == 102
       @full_line = true
       @regex = /^\s*(.+)\s*$/gm
 
@@ -70,9 +69,9 @@ class PercentRedactor extends Redactor
     Math.random() < @percent
 
 class PatternRedactor extends Redactor
-  constructor: (options) ->
+  constructor: (regex) ->
     super
-    @regex = options.regex
+    @regex = regex
 
   shouldRedact: ->
     true
@@ -117,7 +116,7 @@ class RedactInputView extends View
 
     return unless editor? and input.length
 
-    this.redactor(editor, input).redact()
+    this.redactor(input).redact()
 
   storeFocusedElement: ->
     @previouslyFocusedElement = $(':focus')
@@ -146,12 +145,10 @@ class RedactPercentView extends RedactInputView
     @miniEditor.getModel().on 'will-insert-text', ({cancel, text}) =>
       cancel() unless text.match(/[0-9]/)
 
-  redactor: (editor, input) ->
-    return unless editor? and input?
-
+  redactor: (input) ->
     percent = parseInt(input)
 
-    new PercentRedactor(editor: editor, percent: percent)
+    new PercentRedactor(percent)
 
 class RedactPatternView extends RedactInputView
   @contentClass: 'redact-pattern'
@@ -161,9 +158,7 @@ class RedactPatternView extends RedactInputView
 
     super
 
-  redactor: (editor, input) ->
-    return unless editor? and input?
-
+  redactor: (input) ->
     pattern = new RegExp(input, 'g')
 
-    new PatternRedactor(editor: editor, regex: pattern)
+    new PatternRedactor(pattern)
