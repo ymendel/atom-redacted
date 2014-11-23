@@ -139,7 +139,6 @@ class RedactPercentView extends RedactInputView
 
   initialize: ->
     @messageText = 'Enter a percentage'
-
     super
 
     @miniEditor.getModel().on 'will-insert-text', ({cancel, text}) =>
@@ -147,7 +146,6 @@ class RedactPercentView extends RedactInputView
 
   redactor: (input) ->
     percent = parseInt(input)
-
     new PercentRedactor(percent)
 
 class RedactPatternView extends RedactInputView
@@ -155,10 +153,8 @@ class RedactPatternView extends RedactInputView
 
   initialize: ->
     @messageText = 'Enter a string'
-
     super
 
   redactor: (input) ->
     pattern = new RegExp(input, 'g')
-
     new PatternRedactor(pattern)
