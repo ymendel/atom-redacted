@@ -4,7 +4,7 @@ module.exports =
   activate: ->
     atom.workspaceView.command 'redacted:redact', '.editor', ->
       editor   = atom.workspace.getActiveEditor()
-      redactor = new Redactor(editor: editor, percent: 25)
+      redactor = new PercentRedactor(editor: editor, percent: 25)
       redactor.redact()
 
     atom.workspaceView.command 'redacted:percent-toggle', '.editor', ->
@@ -18,19 +18,8 @@ module.exports =
       false
 
 class Redactor
-  constructor: (args) ->
-    @editor  = args.editor
-    @percent = (args.percent or 25) / 100
-    @regex   = /([\w'-]+)/g
-
-    if args.regex
-      @regex   = args.regex
-      @percent = 1
-    else if args.percent == 101
-      @regex = /(\S+)/g
-    else if args.percent == 102
-      @full_line = true
-      @regex = /^\s*(.+)\s*$/gm
+  constructor: (options) ->
+    @editor  = options.editor
 
   redact: ->
     @editor.transact =>
@@ -48,7 +37,7 @@ class Redactor
   redactRange: (range) ->
     originalText = @editor.getTextInBufferRange(range)
     redactedText = originalText.replace @regex, (match) =>
-      if Math.random() < @percent
+      if this.shouldRedact()
         this.redactText(match)
       else
         match
@@ -64,6 +53,30 @@ class Redactor
 
   redactWord: (word) ->
     Array(word.length + 1).join("█")
+
+class PercentRedactor extends Redactor
+  constructor: (options) ->
+    super
+    @percent = (options.percent or 25) / 100
+    @regex   = /([\w'-]+)/g
+
+    if options.percent == 101
+      @regex = /(\S+)/g
+    else if options.percent == 102
+      @full_line = true
+      @regex = /^\s*(.+)\s*$/gm
+
+  shouldRedact: ->
+    Math.random() < @percent
+
+class PatternRedactor extends Redactor
+  constructor: (options) ->
+    super
+    @regex = options.regex
+
+  shouldRedact: ->
+    true
+
 
 class RedactInputView extends View
   @content: ->
@@ -138,7 +151,7 @@ class RedactPercentView extends RedactInputView
 
     percent = parseInt(input)
 
-    new Redactor(editor: editor, percent: percent)
+    new PercentRedactor(editor: editor, percent: percent)
 
 class RedactPatternView extends RedactInputView
   @contentClass: 'redact-pattern'
@@ -153,4 +166,4 @@ class RedactPatternView extends RedactInputView
 
     pattern = new RegExp(input, 'g')
 
-    new Redactor(editor: editor, regex: pattern)
+    new PatternRedactor(editor: editor, regex: pattern)
