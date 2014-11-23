@@ -43,12 +43,7 @@ class Redactor
     @editor.setTextInBufferRange(range, redactedText)
 
   redactText: (text) ->
-    if @full_line
-      breakdown = text.match(/^(\s*)(.+)(\s*)$/)[1..]
-      breakdown[1] = this.redactWord(breakdown[1])
-      breakdown.join("")
-    else
-      this.redactWord(text)
+    this.redactWord(text)
 
   redactWord: (word) ->
     Array(word.length + 1).join("█")
@@ -59,22 +54,32 @@ class PercentRedactor extends Redactor
     @percent = (percent or 25) / 100
     @regex   = /([\w'-]+)/g
 
-    if percent == 101
-      @regex = /(\S+)/g
-    else if percent == 102
-      @full_line = true
-      @regex = /^\s*(.+)\s*$/gm
-
   shouldRedact: ->
     Math.random() < @percent
 
-class PatternRedactor extends Redactor
+class AlwaysRedactor extends Redactor
+  shouldRedact: ->
+    true
+
+class NonWhitespaceRedactor extends AlwaysRedactor
+  constructor: ->
+    super
+    @regex = /(\S+)/g
+
+class FullLineRedactor extends AlwaysRedactor
+  constructor: ->
+    super
+    @regex = /^\s*(.+)\s*$/gm
+
+  redactText: (text) ->
+    breakdown = text.match(/^(\s*)(.+)(\s*)$/)[1..]
+    breakdown[1] = this.redactWord(breakdown[1])
+    breakdown.join("")
+
+class PatternRedactor extends AlwaysRedactor
   constructor: (regex) ->
     super
     @regex = regex
-
-  shouldRedact: ->
-    true
 
 
 class RedactInputView extends View
@@ -146,7 +151,12 @@ class RedactPercentView extends RedactInputView
 
   redactor: (input) ->
     percent = parseInt(input)
-    new PercentRedactor(percent)
+    if percent == 101
+      new NonWhitespaceRedactor
+    else if percent == 102
+      new FullLineRedactor
+    else
+      new PercentRedactor(percent)
 
 class RedactPatternView extends RedactInputView
   @contentClass: 'redact-pattern'
