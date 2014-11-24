@@ -43,16 +43,20 @@ class Redactor
     @editor.setTextInBufferRange(range, redactedText)
 
   redactText: (text) ->
-    this.redactWord(text)
+    this.redactChars(text)
 
-  redactWord: (word) ->
-    Array(word.length + 1).join("█")
+  redactChars: (chars) ->
+    Array(chars.length + 1).join("█")
 
 class PercentRedactor extends Redactor
   constructor: (percent) ->
     super
     @percent = (percent or 25) / 100
-    @regex   = /([\w'-]+)/g
+    @regex   = /(\w+(?:[\w'-]*\w+)?)/g
+
+  redactText: (text) ->
+    text.replace /[\w']/g, (match) =>
+      this.redactChars(match)
 
   shouldRedact: ->
     Math.random() < @percent
@@ -73,7 +77,7 @@ class FullLineRedactor extends AlwaysRedactor
 
   redactText: (text) ->
     breakdown = text.match(/^(\s*)(.+)(\s*)$/)[1..]
-    breakdown[1] = this.redactWord(breakdown[1])
+    breakdown[1] = this.redactChars(breakdown[1])
     breakdown.join("")
 
 class PatternRedactor extends AlwaysRedactor
