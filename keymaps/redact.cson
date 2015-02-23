@@ -1,8 +1,8 @@
-'.workspace':
+'atom-workspace':
   'alt-cmd-r': 'redacted:redact'
   'alt-cmd-shift-R': 'redacted:percent-toggle'
   'alt-cmd-ctrl-r':  'redacted:pattern-toggle'
 
-'.redact-input .mini.editor input':
+'.redact-input atom-text-editor[mini] input':
   'enter': 'core:confirm'
   'escape': 'core:cancel'

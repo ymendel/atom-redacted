@@ -1,17 +1,17 @@
-{$, EditorView, View} = require 'atom'
+{$, TextEditorView, View} = require 'atom-space-pen-views'
 
 module.exports =
   activate: ->
-    atom.workspaceView.command 'redacted:redact', '.editor', ->
+    atom.commands.add '.editor', 'redacted:redact', ->
       redactor = new PercentRedactor(25)
       redactor.redact()
 
-    atom.workspaceView.command 'redacted:percent-toggle', '.editor', ->
+    atom.commands.add '.editor', 'redacted:percent-toggle', ->
       view = new RedactPercentView
       view.toggle()
       false
 
-    atom.workspaceView.command 'redacted:pattern-toggle', '.editor', ->
+    atom.commands.add '.editor', 'redacted:pattern-toggle', ->
       view = new RedactPatternView
       view.toggle()
       false
@@ -85,61 +85,45 @@ class PatternRedactor extends AlwaysRedactor
     super
     @regex = regex
 
-
 class RedactInputView extends View
   @content: ->
-    @div class: "redact-input #{@contentClass} overlay from-top mini", =>
-      @subview 'miniEditor', new EditorView(mini: true)
+    @div class: "redact-input #{@contentClass}", =>
+      @subview 'miniEditor', new TextEditorView(mini: true)
       @div class: 'message', outlet: 'message'
 
-  detaching: false
-
   initialize: ->
-    @miniEditor.hiddenInput.on 'focusout', => @detach() unless @detaching
-    @on 'core:confirm', => @confirm()
-    @on 'core:cancel', => @detach()
+    @miniEditor.on 'blur', => @close()
+
+    atom.commands.add this.element,
+      'core:confirm': =>
+        @confirm()
+      'core:cancel': =>
+        @close()
 
   toggle: ->
-    if @hasParent()
-      @detach()
+    if @panel?.isVisible()
+      @close()
     else
       @attach()
 
-   detach: ->
-    return unless @hasParent()
-
-    @detaching = true
-    miniEditorFocused = @miniEditor.isFocused
+  close: ->
     @miniEditor.setText('')
-
-    super
-
-    @restoreFocus() if miniEditorFocused
-    @detaching = false
+    @panel?.hide()
+    atom.workspace.getActivePane().activate()
 
   confirm: ->
     input  = @miniEditor.getText()
     editor = atom.workspace.getActiveEditor()
 
-    @detach()
+    @close()
 
     return unless editor? and input.length
 
     this.redactor(input).redact()
 
-  storeFocusedElement: ->
-    @previouslyFocusedElement = $(':focus')
-
-  restoreFocus: ->
-    if @previouslyFocusedElement?.isOnDom()
-      @previouslyFocusedElement.focus()
-    else
-      atom.workspaceView.focus()
-
   attach: ->
     if editor = atom.workspace.getActiveEditor()
-      @storeFocusedElement()
-      atom.workspaceView.append(this)
+      @panel = atom.workspace.addModalPanel(item: this)
       @message.text(@messageText)
       @miniEditor.focus()
 
@@ -150,8 +134,8 @@ class RedactPercentView extends RedactInputView
     @messageText = 'Enter a percentage'
     super
 
-    @miniEditor.getModel().on 'will-insert-text', ({cancel, text}) =>
-      cancel() unless text.match(/[0-9]/)
+    @miniEditor.preempt 'textInput', (e) =>
+      false unless e.originalEvent.data.match(/[0-9]/)
 
   redactor: (input) ->
     percent = parseInt(input)
