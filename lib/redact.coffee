@@ -18,7 +18,7 @@ module.exports =
 
 class Redactor
   constructor: ->
-    @editor = atom.workspace.getActiveEditor()
+    @editor = atom.workspace.getActiveTextEditor()
 
   redact: ->
     @editor.transact =>
@@ -113,7 +113,7 @@ class RedactInputView extends View
 
   confirm: ->
     input  = @miniEditor.getText()
-    editor = atom.workspace.getActiveEditor()
+    editor = atom.workspace.getActiveTextEditor()
 
     @close()
 
@@ -122,7 +122,7 @@ class RedactInputView extends View
     this.redactor(input).redact()
 
   attach: ->
-    if editor = atom.workspace.getActiveEditor()
+    if editor = atom.workspace.getActiveTextEditor()
       @panel = atom.workspace.addModalPanel(item: this)
       @message.text(@messageText)
       @miniEditor.focus()
