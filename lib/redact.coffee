@@ -25,7 +25,8 @@ class Redactor
       ranges = @editor.getSelectedBufferRanges()
       selection = null
       if ranges.length is 1 and ranges[0].isEmpty()
-        selection = @editor.selectAll()[0]
+        @editor.selectAll()
+        selection = @editor.getSelections()[0]
         ranges    = [selection.getBufferRange()]
 
       for range in ranges
