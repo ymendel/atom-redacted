@@ -2,23 +2,23 @@
 
 module.exports =
   activate: ->
-    atom.commands.add '.editor', 'redacted:redact', ->
+    atom.commands.add 'atom-text-editor', 'redacted:redact', ->
       redactor = new PercentRedactor(25)
       redactor.redact()
 
-    atom.commands.add '.editor', 'redacted:percent-toggle', ->
+    atom.commands.add 'atom-text-editor', 'redacted:percent-toggle', ->
       view = new RedactPercentView
       view.toggle()
       false
 
-    atom.commands.add '.editor', 'redacted:pattern-toggle', ->
+    atom.commands.add 'atom-text-editor', 'redacted:pattern-toggle', ->
       view = new RedactPatternView
       view.toggle()
       false
 
 class Redactor
   constructor: ->
-    @editor = atom.workspace.getActiveEditor()
+    @editor = atom.workspace.getActiveTextEditor()
 
   redact: ->
     @editor.transact =>
@@ -113,7 +113,7 @@ class RedactInputView extends View
 
   confirm: ->
     input  = @miniEditor.getText()
-    editor = atom.workspace.getActiveEditor()
+    editor = atom.workspace.getActiveTextEditor()
 
     @close()
 
@@ -122,7 +122,7 @@ class RedactInputView extends View
     this.redactor(input).redact()
 
   attach: ->
-    if editor = atom.workspace.getActiveEditor()
+    if editor = atom.workspace.getActiveTextEditor()
       @panel = atom.workspace.addModalPanel(item: this)
       @message.text(@messageText)
       @miniEditor.focus()
